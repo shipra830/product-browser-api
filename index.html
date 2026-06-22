@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeVector Catalog</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f6f9; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .controls { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; }
+        .badge { background: #eff6ff; color: #2563eb; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .price { font-size: 18px; color: #10b981; font-weight: bold; margin: 10px 0; }
+        .btn-container { text-align: center; margin-top: 30px; }
+        button { background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Product Catalog (200k Items)</h2>
+        <div class="controls">
+            <label>Category:</label>
+            <select id="categorySelect" onchange="fetchProducts(true)">
+                <option value="">All</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Books">Books</option>
+                <option value="Home & Kitchen">Home & Kitchen</option>
+                <option value="Sports & Outdoors">Sports & Outdoors</option>
+            </select>
+            <div style="margin-left: auto;">Loaded: <span id="loadedCount">0</span></div>
+        </div>
+        <div id="productGrid" class="grid"></div>
+        <div class="btn-container"><button id="loadMoreBtn" onclick="fetchProducts()">Load Next Page</button></div>
+    </div>
+    <script>
+        let currentCursor = null;
+        let totalLoaded = 0;
+        async function fetchProducts(reset = false) {
+            const cat = document.getElementById('categorySelect').value;
+            const grid = document.getElementById('productGrid');
+            if (reset) { grid.innerHTML = ''; currentCursor = null; totalLoaded = 0; }
+            let url = `/api/products?limit=20`;
+            if (cat) url += `&category=${encodeURIComponent(cat)}`;
+            if (currentCursor) url += `&cursor=${encodeURIComponent(currentCursor)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data.success) {
+                data.products.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `<span class="badge">${p.category}</span><h4>${p.name}</h4><div class="price">$${p.price}</div><small>ID: ${p.id}</small>`;
+                    grid.appendChild(card);
+                });
+                totalLoaded += data.products.length;
+                document.getElementById('loadedCount').innerText = totalLoaded;
+                currentCursor = data.nextCursor;
+                document.getElementById('loadMoreBtn').style.display = currentCursor ? 'inline-block' : 'none';
+            }
+        }
+        fetchProducts();
+    </script>
+</body>
+</html>
