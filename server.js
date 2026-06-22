@@ -20,7 +20,7 @@ app.get('/api/products', async (req, res) => {
     const { category, limit = 20, cursor } = req.query;
     const parsedLimit = parseInt(limit);
     
-    let query = `SELECT id, name, category, price, created_at FROM products WHERE 1=1`;
+    let query = `SELECT id, name, category, price, created_at, updated_at FROM products WHERE 1=1`;
     let queryParams = [];
 
     if (category && category.trim() !== "") {
@@ -38,11 +38,11 @@ app.get('/api/products', async (req, res) => {
         const tsIndex = queryParams.length - 1;
         const idIndex = queryParams.length;
         
-        query += ` AND (created_at < $${tsIndex} OR (created_at = $${tsIndex} AND id < $${idIndex}))`;
+       query += ` AND (updated_at < $${tsIndex} OR (updated_at = $${tsIndex} AND id < $${idIndex}))`;
       }
     }
 
-    query += ` ORDER BY created_at DESC, id DESC LIMIT $${queryParams.length + 1}`;
+    query += ` ORDER BY updated_at DESC, id DESC LIMIT $${queryParams.length + 1}`;
     queryParams.push(parsedLimit + 1);
 
     const { rows } = await pool.query(query, queryParams);
@@ -53,7 +53,7 @@ app.get('/api/products', async (req, res) => {
     let nextCursor = null;
     if (hasNextPage && data.length > 0) {
       const lastItem = data[data.length - 1];
-      const ts = new Date(lastItem.created_at).toISOString();
+     const ts = new Date(lastItem.updated_at).toISOString();
       nextCursor = `${ts}_${lastItem.id}`;
     }
 

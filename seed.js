@@ -25,11 +25,28 @@ async function seedDatabase() {
       const name = `Premium Product ${globalId}`;
       const category = categories[Math.floor(Math.random() * categories.length)];
       const price = (Math.random() * 990 + 10).toFixed(2);
-      const date = new Date(Date.now() - (globalId * 60000)).toISOString();
+      const createdDate = new Date(
+  Date.now() - (globalId * 60000)
+);
+
+let updatedDate = createdDate;
+
+// 20% products ko updated dikhao
+if (Math.random() < 0.2) {
+  updatedDate = new Date(
+    createdDate.getTime() +
+    Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)
+  );
+}
+
+const createdAt = createdDate.toISOString();
+const updatedAt = updatedDate.toISOString();
       const escapedName = name.replace(/'/g, "''");
       const escapedCategory = category.replace(/'/g, "''");
       
-      valueRows.push(`('${escapedName}', '${escapedCategory}', ${price}, '${date}', '${date}')`);
+     valueRows.push(
+  `('${escapedName}', '${escapedCategory}', ${price}, '${createdAt}', '${updatedAt}')`
+);
     }
 
     const query = `INSERT INTO products (name, category, price, created_at, updated_at) VALUES ${valueRows.join(',')}`;
