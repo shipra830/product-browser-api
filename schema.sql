@@ -12,3 +12,6 @@ ON products (updated_at DESC, id DESC);
 
 CREATE INDEX IF NOT EXISTS idx_products_category_updated_id
 ON products (category, updated_at DESC, id DESC);
+
+CREATE INDEX IF NOT EXISTS idx_products_name_fts 
+ON products USING GIN (to_tsvector('english', name));
